@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import mark_safe
 from . import models
 
 
@@ -13,15 +14,23 @@ class ItemAdmin(admin.ModelAdmin):
         return obj.rooms.count()
 
 
+# 붙여 넣으려는 모델을 TabularInline 상속 받아서 클래스 생성
+class PhotoInline(admin.TabularInline):
+
+    model = models.Photo
+
+
 @admin.register(models.Room)
 class RoomAdmin(admin.ModelAdmin):
 
     """ Room Model Definition """
 
+    inlines = (PhotoInline,)  # 기존 어드민 안에 이어 붙임
+
     fieldsets = (
         (
             "Basic Info",
-            {"fields": ("name", "description", "country", "address", "price")},
+            {"fields": ("name", "description", "country", "city", "address", "price")},
         ),
         ("Times", {"fields": ("check_in", "check_out", "instance_book")}),
         ("Spaces", {"fields": ("guests", "beds", "bedrooms", "baths")}),
@@ -65,11 +74,17 @@ class RoomAdmin(admin.ModelAdmin):
         "country",
     )
 
+    raw_id_fields = ("host",)
+
     # default = icontains(insensitive : 대소문자 구분없이)
     search_fields = ("=city", "^host__username")
 
     # 디테일 페이지 필터링 박스 생성
     filter_horizontal = ("amenities", "facilities", "house_rules")
+
+    # 어드민 변경 사항 저장에 대해서만 override
+    # def save_model(self, request, obj. form, change):
+    #     super().save_model(request, obj, form, change)
 
     # obj는 하나의 room 객체
     def count_amenities(self, obj):
@@ -78,10 +93,17 @@ class RoomAdmin(admin.ModelAdmin):
     def count_photos(self, obj):
         return obj.photos.count()
 
+    count_photos.short_description = "Photo Count"
+
 
 @admin.register(models.Photo)
 class PhotoAdmin(admin.ModelAdmin):
 
-    """ """
+    """ Photo Admin Definitnion"""
 
-    pass
+    list_display = ("__str__", "get_thumbnail")
+
+    def get_thumbnail(self, obj):
+        return mark_safe(f"<img width='50px' src = '{obj.file.url}'/>")
+
+    get_thumbnail.short_description = "Thumbnail"

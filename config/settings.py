@@ -51,7 +51,7 @@ PROJECT_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
 
-THIRD_PARTY_APPS = ["django-countries"]
+THIRD_PARTY_APPS = ["django-countries", "django_seed"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -128,3 +128,9 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 AUTH_USER_MODEL = "users.User"
+
+# 미디어 파일 저장 경로 설정
+MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
+
+# uploads 디렉토리와 연결해주는 URL 설정 - root/media
+MEDIA_URL = "/media/"
