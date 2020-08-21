@@ -2,9 +2,6 @@ from django.contrib import admin
 from . import models
 
 
-# Register your models here.
-
-
 @admin.register(models.RoomType, models.Facility, models.Amenity, models.HouseRule)
 class ItemAdmin(admin.ModelAdmin):
 
@@ -31,7 +28,7 @@ class RoomAdmin(admin.ModelAdmin):
         (
             "More About the Spaces",
             {
-                "classes": ("collapse",),
+                "classes": ("collapse",),  # 접을 수 있게 함
                 "fields": ("amenities", "facilities", "house_rules"),
             },
         ),
@@ -52,9 +49,10 @@ class RoomAdmin(admin.ModelAdmin):
         "instance_book",
         "count_amenities",
         "count_photos",
+        "total_rating",
     )
 
-    # ordering = ("name", "price", "bedrooms")
+    # ordering = ("name", "price", "bedrooms") # 리스트페이지 ordering
 
     list_filter = (
         "instance_book",
@@ -70,8 +68,10 @@ class RoomAdmin(admin.ModelAdmin):
     # default = icontains(insensitive : 대소문자 구분없이)
     search_fields = ("=city", "^host__username")
 
+    # 디테일 페이지 필터링 박스 생성
     filter_horizontal = ("amenities", "facilities", "house_rules")
 
+    # obj는 하나의 room 객체
     def count_amenities(self, obj):
         return obj.amenities.count()
 
