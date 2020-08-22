@@ -32,7 +32,7 @@ class RoomAdmin(admin.ModelAdmin):
             "Basic Info",
             {"fields": ("name", "description", "country", "city", "address", "price")},
         ),
-        ("Times", {"fields": ("check_in", "check_out", "instance_book")}),
+        ("Times", {"fields": ("check_in", "check_out", "instant_book")}),
         ("Spaces", {"fields": ("guests", "beds", "bedrooms", "baths")}),
         (
             "More About the Spaces",
@@ -55,7 +55,7 @@ class RoomAdmin(admin.ModelAdmin):
         "baths",
         "check_in",
         "check_out",
-        "instance_book",
+        "instant_book",
         "count_amenities",
         "count_photos",
         "total_rating",
@@ -64,7 +64,7 @@ class RoomAdmin(admin.ModelAdmin):
     # ordering = ("name", "price", "bedrooms") # 리스트페이지 ordering
 
     list_filter = (
-        "instance_book",
+        "instant_book",
         "host__superhost",
         "room_type",
         "amenities",

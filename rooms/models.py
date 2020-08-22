@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django_countries.fields import CountryField
 from core import models as core_models
 
@@ -72,7 +73,7 @@ class Room(core_models.TimeStampModel):
     baths = models.IntegerField()
     check_in = models.TimeField()
     check_out = models.TimeField()
-    instance_book = models.BooleanField(default=False)
+    instant_book = models.BooleanField(default=False)
 
     # many to one // cascade : 폭포수효과 - user 삭제하면 roomtype도 같이 삭제됨
     # on_delete only for ForeignKey
@@ -94,6 +95,10 @@ class Room(core_models.TimeStampModel):
     def save(self, *args, **kwargs):
         self.city = str.capitalize(self.city)
         super().save(*args, **kwargs)
+
+    # 특정 URL로 보내줄 때
+    def get_absolute_url(self):
+        return reverse("rooms:detail", kwargs={"pk": self.pk})
 
     def total_rating(self):
         all_reviews = self.reviews.all()
