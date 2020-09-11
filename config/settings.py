@@ -127,6 +127,8 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
 AUTH_USER_MODEL = "users.User"
 
 # 미디어 파일 저장 경로 설정
