@@ -1,11 +1,12 @@
 import os
 import requests
 from django.views import View
-from django.views.generic import FormView
+from django.views.generic import FormView, DetailView, UpdateView
 from django.urls import reverse_lazy
 from django.shortcuts import render, redirect, reverse
 from django.contrib.auth import authenticate, login, logout
 from django.core.files.base import ContentFile
+from django.contrib import messages
 from . import forms, models
 
 
@@ -25,6 +26,7 @@ class LoginView(FormView):
 
 
 def log_out(request):
+    messages.info(request, "See you later")
     logout(request)
     return redirect(reverse("core:home"))
 
@@ -83,7 +85,7 @@ def github_callback(request):
             token_json = token_request.json()
             error = token_json.get("error", None)
             if error is not None:
-                raise GithubException()
+                raise GithubException("Can't get access token")
             else:
                 access_token = token_json.get("access_token")
                 profile_request = requests.get(
@@ -102,7 +104,9 @@ def github_callback(request):
                     try:
                         user = models.User.objects.get(email=email)
                         if user.login_method != models.User.LOGIN_GITHUB:
-                            raise GithubException()
+                            raise GithubException(
+                                f"Plase log in with: {user.login_method}"
+                            )
                     except models.User.DoesNotExist:
                         user = models.User.objects.create(
                             email=email,
@@ -115,13 +119,14 @@ def github_callback(request):
                         user.set_unusable_password()
                         user.save()
                     login(request, user)
+                    messages.success(request, f"Welcome back {user.first_name}")
                     return redirect(reverse("core:home"))
                 else:
-                    raise GithubException()
+                    raise GithubException("Can't get your profile")
         else:
-            raise GithubException()
-    except GithubException:
-        # send error message
+            raise GithubException("Can't get authorization code")
+    except GithubException as e:
+        messages.error(request, e)
         return redirect(reverse("users:login"))
 
 
@@ -148,7 +153,7 @@ def kakao_callback(request):
         token_json = token_request.json()
         error = token_json.get("error", None)
         if error is not None:
-            raise KakaoException()
+            raise KakaoException("Can't get authorization code.")
         access_token = token_json.get("access_token")
         profile_request = requests.get(
             "https://kapi.kakao.com/v2/user/me",
@@ -158,7 +163,7 @@ def kakao_callback(request):
         profile_data = profile_json.get("kakao_account", None)
         has_email = profile_data.get("has_email")
         if not has_email:
-            raise KakaoException()
+            raise KakaoException("Please also give me your email")
         email = profile_data.get("email")
         properties = profile_data.get("profile")
         nickname = properties.get("nickname")
@@ -166,7 +171,7 @@ def kakao_callback(request):
         try:
             user = models.User.objects.get(email=email)
             if user.login_method != models.User.LOGIN_KAKAO:
-                raise KakaoException()
+                raise KakaoException(f"Plase log in with: {user.login_method}")
         except models.User.DoesNotExist:
             user = models.User.objects.create(
                 email=email,
@@ -184,9 +189,47 @@ def kakao_callback(request):
                     f"{nickname}-avatar", ContentFile(photo_request.content)
                 )
         login(request, user)
+        messages.success(request, f"Welcome back {user.first_name}")
         return redirect(reverse("core:home"))
-    except KakaoException:
+    except KakaoException as e:
+        messages.error(request, e)
         return redirect(reverse("users:login"))
+
+
+# DetailView 를 상속 받으면 자동으로 lowercase(modelname)_detail.html 템플릿을 rendering
+# ListView 는 model_list.html rendering
+class UserProfileView(DetailView):
+
+    model = models.User
+
+    # context_object_name = None(default) --> 현재 view에서 바라보는 유저 정보 기준으로 매번 바뀜
+    # 객체의 이름을 지정해줌
+    context_object_name = "user_obj"
+
+    # get_context_data 는 기본적으로 user_obj를 인자로 받음
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context["hello"] = "Hello!"
+    #     return context
+
+
+class UpdateProfileView(UpdateView):
+
+    model = models.User
+    template_name = "users/update-profile.html"
+    fields = (
+        "first_name",
+        "last_name",
+        "avatar",
+        "gender",
+        "bio",
+        "birthdate",
+        "language",
+        "currency",
+    )
+
+    def get_object(self, queryset=None):
+        return self.request.user
 
 
 # class LoginView(View):
