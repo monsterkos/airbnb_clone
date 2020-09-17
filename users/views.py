@@ -5,6 +5,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.views.generic import FormView, DetailView, UpdateView
 from django.urls import reverse_lazy
 from django.shortcuts import render, redirect, reverse
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.core.files.base import ContentFile
 from django.contrib import messages
@@ -275,6 +276,15 @@ class UpdatePasswordView(
     #     self.object.username = email
     #     self.object.save()
     #     return super().form_valid(form)
+
+
+@login_required
+def switch_hosging(request):
+    try:
+        del request.session["is_hosting"]
+    except KeyError:
+        request.session["is_hosting"] = True
+    return redirect(reverse("core:home"))
 
 
 # class LoginView(View):
