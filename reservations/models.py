@@ -2,6 +2,7 @@ import datetime
 from django.db import models
 from django.utils import timezone
 from core import models as core_models
+from . import managers
 
 
 class BookedDay(core_models.TimeStampModel):
@@ -12,6 +13,9 @@ class BookedDay(core_models.TimeStampModel):
     class Meta:
         verbose_name = "Booked Day"
         verbose_name_plural = "Booked Days"
+
+    def __str__(self):
+        return str(self.day)
 
 
 class Reservation(core_models.TimeStampModel):
@@ -40,6 +44,7 @@ class Reservation(core_models.TimeStampModel):
     room = models.ForeignKey(
         "rooms.Room", related_name="reservations", on_delete=models.CASCADE
     )
+    objects = managers.CustomReservationManager()
 
     def __str__(self):
         return f"{self.room} - {self.check_in}"
