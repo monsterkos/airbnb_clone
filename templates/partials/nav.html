@@ -11,7 +11,10 @@
         </li>
         {% if request.session.is_hosting %}
             <li class="nav_link"><a href="{% url 'rooms:create' %}">Create Room</a></li>
+            <li class="nav_link"><a href="{% url 'reservations:check' user.pk %}?kind=host">Orders ({{user.get_reservation_count}})</a></li>
         {% endif %}
+        <li class="nav_link"><a href="{% url 'reservations:check' user.pk %}?kind=guest">Reservations ({{user.reservations.count}})</a></li>
+        <li class="nav_link"><a href="{% url 'lists:see-favs' %}">Favs ({{user.list.rooms.count}})</a></li>
         <li class="nav_link"><a href="{{user.get_absolute_url}}">Profile</a></li>
         <li class="nav_link"><a href="{% url 'users:logout' %}">Log out</a></li>
     {% else %}

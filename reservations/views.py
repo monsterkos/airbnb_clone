@@ -62,3 +62,30 @@ def edit_reservation(request, pk, verb):
     reservation.save()
     messages.success(request, "Reservation Updated")
     return redirect(reverse("reservations:detail", kwargs={"pk": reservation.pk}))
+
+
+class CheckReservationView(View):
+    def get(self, *args, **kwargs):
+        kind = self.request.GET.get("kind", None)
+        pk = kwargs.get("pk")
+        if kind is not None:
+            if kind == "guest":
+                reservations = models.Reservation.objects.filter(guest=pk)
+                if not reservations:
+                    raise Http404
+                form = review_forms.CreateReviewForm()
+                return render(
+                    self.request,
+                    "reservations/list.html",
+                    {"reservations": reservations, "form": form},
+                )
+            elif kind == "host":
+                reservations = models.Reservation.objects.filter(room__host_id=pk)
+                if not reservations:
+                    raise Http404
+                return render(
+                    self.request,
+                    "reservations/host.html",
+                    {"reservations": reservations},
+                )
+

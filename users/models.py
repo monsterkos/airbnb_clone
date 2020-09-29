@@ -6,6 +6,8 @@ from django.core.mail import send_mail
 from django.utils.html import strip_tags
 from django.shortcuts import reverse
 from django.template.loader import render_to_string
+from core import managers as core_managers
+from reservations.models import Reservation
 
 
 class User(AbstractUser):
@@ -64,6 +66,7 @@ class User(AbstractUser):
     login_method = models.CharField(
         max_length=50, choices=LOGIN_CHOICES, default=LOGIN_EMAIL
     )
+    objects = core_managers.CustomModelManager()
 
     # detail 정보를 보기 위한 url 연결 - admin 에서 view on site 버튼 생성됨
     def get_absolute_url(self):
@@ -86,3 +89,6 @@ class User(AbstractUser):
             )
             self.save()
         return
+
+    def get_reservation_count(self):
+        return Reservation.objects.filter(room__host=self).count()
